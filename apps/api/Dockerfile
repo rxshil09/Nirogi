@@ -27,6 +27,9 @@ COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/apps/api ./apps/api
 COPY --from=builder /app/prisma ./prisma
 
+# Mirror compiled dist to root so all path variations (/app/apps/api/dist/server.js, /app/dist/server.js) resolve 100%
+RUN mkdir -p /app/dist && cp -r /app/apps/api/dist/* /app/dist/
+
 EXPOSE 4000
 
 CMD ["node", "apps/api/dist/server.js"]
