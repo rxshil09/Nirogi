@@ -6,7 +6,7 @@ import {
   type SearchResultResponse,
 } from '@nirogi/contracts';
 
-const apiOrigin = import.meta.env.VITE_API_ORIGIN ?? 'http://localhost:4000';
+const apiOrigin = import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_ORIGIN ?? 'http://localhost:4000';
 
 export class ApiError extends Error {
   constructor(message: string, readonly status: number) {
