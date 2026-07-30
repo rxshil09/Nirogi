@@ -39,6 +39,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build Shared Packages
+        run: |
+          npm run build --workspace=@nirogi/contracts
+          npm run build --workspace=@nirogi/config
+          npm run build --workspace=@nirogi/domain
+
       - name: Generate Prisma Client
         run: npx prisma generate
 
@@ -57,4 +63,3 @@ jobs:
 
       - name: Build All Workspaces
         run: npm run build
-
