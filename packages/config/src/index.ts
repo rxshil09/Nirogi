@@ -16,7 +16,14 @@ const optionalString = z
 const EnvironmentSchema = z.object({
   // API
   API_PORT: z.coerce.number().int().min(1).max(65535).default(4000),
-  WEB_ORIGIN: z.string().url().default('http://localhost:5173'),
+  WEB_ORIGIN: z
+    .string()
+    .default('http://localhost:5173')
+    .transform((v) => v.trim())
+    .refine(
+      (v) => v === '*' || z.string().url().safeParse(v).success,
+      { message: 'WEB_ORIGIN must be "*" or a valid URL' }
+    ),
 
   // Database
   DATABASE_URL: optionalUrl,
@@ -37,4 +44,3 @@ const EnvironmentSchema = z.object({
 export type Env = z.infer<typeof EnvironmentSchema>;
 
 export const env: Env = EnvironmentSchema.parse(process.env);
-
