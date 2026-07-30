@@ -26,7 +26,4 @@ COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/apps/worker ./apps/worker
 COPY --from=builder /app/prisma ./prisma
 
-# Mirror compiled dist to root so all path variations (/app/apps/worker/dist/worker.js, /app/dist/worker.js) resolve 100%
-RUN mkdir -p /app/dist && cp -r /app/apps/worker/dist/* /app/dist/
-
-CMD ["node", "apps/worker/dist/worker.js"]
+CMD ["node", "apps/worker/dist/apps/worker/src/worker.js"]
