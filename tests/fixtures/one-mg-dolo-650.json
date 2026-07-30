@@ -1,0 +1,17 @@
+{
+  "_comment": "Sanitised fixture for 1mg search — 'Dolo 650 tablet'. Used by adapter tests without hitting a live site.",
+  "query": "Dolo 650 tablet",
+  "source": "one-mg",
+  "capturedAt": "2026-07-01T10:00:00Z",
+  "offer": {
+    "retailer": "one-mg",
+    "sourceTitle": "Dolo 650mg Tablet 15's",
+    "sourceUrl": "https://www.1mg.com/drugs/dolo-650mg-tablet-81591",
+    "pricePaise": 3100,
+    "mrpPaise": 3265,
+    "discountPercent": 5,
+    "availability": "in_stock",
+    "collectedAt": "2026-07-01T10:00:00Z",
+    "matchStatus": "candidate"
+  }
+}

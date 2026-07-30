@@ -1,0 +1,186 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PrescriptionStatus {
+  unknown
+  otc
+  prescription
+  restricted
+}
+
+enum ComparisonStatus {
+  exact
+  needs_review
+}
+
+enum IntegrationMode {
+  approved_api
+  approved_feed
+  manual_fixture
+  browser_collection
+}
+
+enum MatchStatus {
+  exact
+  candidate
+  needs_review
+  rejected
+}
+
+enum Availability {
+  in_stock
+  out_of_stock
+  not_for_sale
+  unknown
+}
+
+enum SearchJobStatus {
+  queued
+  running
+  partial
+  completed
+  failed
+  cancelled
+}
+
+enum ScrapeAttemptStatus {
+  queued
+  running
+  succeeded
+  no_match
+  rate_limited
+  timed_out
+  failed
+}
+
+model MedicineProduct {
+  id                 String           @id @default(uuid()) @db.Uuid
+  displayName        String
+  brandName          String?
+  genericName        String?
+  composition        Json?
+  prescriptionStatus PrescriptionStatus @default(unknown)
+  searchAliases      String[]
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  variants           ProductVariant[]
+
+  @@index([displayName])
+}
+
+model ProductVariant {
+  id                String           @id @default(uuid()) @db.Uuid
+  medicineProductId String           @db.Uuid
+  strengthValue     String?
+  strengthUnit      String?
+  dosageForm        String?
+  packQuantity      Int?
+  packUnit          String?
+  manufacturerName  String?
+  normalisedKey     String           @unique
+  comparisonStatus  ComparisonStatus @default(needs_review)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  medicineProduct   MedicineProduct  @relation(fields: [medicineProductId], references: [id], onDelete: Cascade)
+  retailerListings  RetailerListing[]
+  searchJobs        SearchJob[]
+
+  @@index([medicineProductId])
+}
+
+model Retailer {
+  id               String            @id @default(uuid()) @db.Uuid
+  slug             String            @unique
+  displayName      String
+  integrationMode  IntegrationMode
+  isActive         Boolean           @default(true)
+  termsReviewedAt  DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  listings         RetailerListing[]
+  scrapeAttempts   ScrapeAttempt[]
+}
+
+model RetailerListing {
+  id                String             @id @default(uuid()) @db.Uuid
+  retailerId        String             @db.Uuid
+  retailerProductId String?
+  canonicalUrl      String
+  sourceTitle       String
+  productVariantId  String?            @db.Uuid
+  matchConfidence   Decimal?           @db.Decimal(5, 2)
+  matchStatus       MatchStatus        @default(candidate)
+  lastVerifiedAt    DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  retailer          Retailer           @relation(fields: [retailerId], references: [id], onDelete: Cascade)
+  productVariant    ProductVariant?    @relation(fields: [productVariantId], references: [id], onDelete: SetNull)
+  priceObservations PriceObservation[]
+
+  @@unique([retailerId, canonicalUrl])
+  @@unique([retailerId, retailerProductId])
+  @@index([productVariantId])
+}
+
+model SearchJob {
+  id               String          @id @default(uuid()) @db.Uuid
+  query            String
+  pincode          String?
+  cacheKey         String
+  productVariantId String?         @db.Uuid
+  status           SearchJobStatus @default(queued)
+  createdAt        DateTime        @default(now())
+  startedAt        DateTime?
+  completedAt      DateTime?
+  productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: SetNull)
+  scrapeAttempts   ScrapeAttempt[]
+
+  @@index([cacheKey, createdAt])
+  @@index([status, createdAt])
+}
+
+model ScrapeAttempt {
+  id             String              @id @default(uuid()) @db.Uuid
+  searchJobId    String              @db.Uuid
+  retailerId     String              @db.Uuid
+  status         ScrapeAttemptStatus @default(queued)
+  errorCode      String?
+  errorMessage   String?
+  rawPayloadHash String?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime            @default(now())
+  searchJob      SearchJob           @relation(fields: [searchJobId], references: [id], onDelete: Cascade)
+  retailer       Retailer            @relation(fields: [retailerId], references: [id], onDelete: Restrict)
+  observations   PriceObservation[]
+
+  @@index([searchJobId])
+  @@index([retailerId, createdAt])
+}
+
+model PriceObservation {
+  id                String           @id @default(uuid()) @db.Uuid
+  retailerListingId String           @db.Uuid
+  scrapeAttemptId   String           @db.Uuid
+  locationKey       String?
+  pricePaise        Int?
+  mrpPaise          Int?
+  currency          String           @default("INR") @db.Char(3)
+  availability      Availability     @default(unknown)
+  deliveryFeePaise  Int?
+  tierUsed          String?
+  sourceObservedAt  DateTime?
+  collectedAt       DateTime         @default(now())
+  rawPayloadHash    String?
+  retailerListing   RetailerListing  @relation(fields: [retailerListingId], references: [id], onDelete: Cascade)
+  scrapeAttempt     ScrapeAttempt    @relation(fields: [scrapeAttemptId], references: [id], onDelete: Cascade)
+
+  @@index([retailerListingId, locationKey, collectedAt])
+  @@index([collectedAt])
+}

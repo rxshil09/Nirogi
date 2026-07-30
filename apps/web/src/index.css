@@ -1,0 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-background font-sans text-text;
+  overflow-x: hidden;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.btn-primary {
+  @apply rounded-full bg-gradient-to-r from-primary to-error px-8 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-glow-primary focus:outline-none focus:ring-4 focus:ring-primary/50;
+}
+
+.btn-secondary {
+  @apply rounded-full border border-border bg-surface px-8 py-3 font-semibold text-primary transition-all duration-300 hover:scale-105 hover:border-primary focus:outline-none focus:ring-4 focus:ring-primary/20;
+}
+
+.card {
+  @apply rounded-3xl border border-border bg-surface shadow-xl transition-all duration-300 hover:border-primary/50;
+}
+
+.input-field {
+  @apply w-full rounded-xl border border-border bg-surface p-3 text-text placeholder:text-textSecondary transition-all duration-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20;
+}

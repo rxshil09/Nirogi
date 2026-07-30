@@ -1,0 +1,49 @@
+# Dependencies and build output
+node_modules/
+dist/
+.vite/
+.next/
+build/
+out/
+coverage/
+*.tsbuildinfo
+.turbo/
+.cache/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Database
+*.db
+*.db-journal
+*.sqlite
+*.sqlite-journal
+
+# Runtime data & logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+playwright-report/
+test-results/
+
+# Editor, OS, and local agent settings
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.agents/
+
+# Progress Tracking
+progress/
+
+# Legacy Python files
+.venv/
+__pycache__/
+*.pyc
+

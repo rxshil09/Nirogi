@@ -1,0 +1,41 @@
+{
+  "name": "nirogi",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "India-focused medicine price comparison portfolio project",
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace=@nirogi/web",
+    "dev:api": "npm run dev --workspace=@nirogi/api",
+    "dev:worker": "npm run dev --workspace=@nirogi/worker",
+    "scrape": "npm run scrape --workspace=@nirogi/worker",
+    "db:generate": "prisma generate",
+    "db:migrate": "dotenv -e .env -- prisma migrate dev",
+    "db:seed": "tsx --env-file=.env prisma/seed.ts",
+    "test": "vitest run",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present"
+  },
+  "prisma": {
+    "seed": "tsx --env-file=.env prisma/seed.ts"
+  },
+  "devDependencies": {
+    "dotenv-cli": "^8.0.0",
+    "prisma": "^6.9.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3",
+    "vitest": "^4.1.10"
+  },
+  "dependencies": {
+    "indian-pincodes": "^1.1.0"
+  }
+}
