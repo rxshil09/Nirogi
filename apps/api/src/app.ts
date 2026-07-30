@@ -17,8 +17,14 @@ export const buildApp = () => {
     contentSecurityPolicy: false, // Allows API response rendering across origins
   });
 
+  const corsOrigin = env.WEB_ORIGIN === '*'
+    ? '*'
+    : env.WEB_ORIGIN.includes(',')
+      ? env.WEB_ORIGIN.split(',').map((s) => s.trim())
+      : env.WEB_ORIGIN;
+
   app.register(cors, {
-    origin: env.WEB_ORIGIN,
+    origin: corsOrigin,
     methods: ['GET', 'POST'],
   });
 
