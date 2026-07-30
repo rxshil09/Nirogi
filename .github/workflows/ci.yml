@@ -11,6 +11,21 @@ jobs:
     name: Typecheck, Test & Build
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgrespassword
+          POSTGRES_DB: nirogi_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -27,11 +42,19 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
+      - name: Push Schema to Test DB
+        run: npx prisma db push --skip-generate
+        env:
+          DATABASE_URL: postgresql://postgres:postgrespassword@localhost:5432/nirogi_test
+
       - name: Run TypeScript Typecheck
         run: npm run typecheck
 
       - name: Run Vitest Unit Tests
         run: npm run test
+        env:
+          DATABASE_URL: postgresql://postgres:postgrespassword@localhost:5432/nirogi_test
 
       - name: Build All Workspaces
         run: npm run build
+
