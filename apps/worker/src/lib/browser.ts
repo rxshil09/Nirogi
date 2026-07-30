@@ -1,4 +1,6 @@
-import { chromium, type Browser, type BrowserContext } from 'playwright';
+import { chromium, type Browser, type BrowserContext, type BrowserContextOptions } from 'playwright';
+import fs from 'node:fs';
+import path from 'node:path';
 
 /**
  * Manages a single shared Chromium browser process.
@@ -23,22 +25,44 @@ export class SharedBrowser {
   }
 
   /**
-   * Returns a fresh isolated context (like a private window) from the shared browser.
-   * The caller is responsible for closing the context when done.
+   * Returns a fresh isolated context from the shared browser.
+   * Optionally loads cached storageState file if present.
    */
-  async newContext(): Promise<BrowserContext> {
+  async newContext(storageStatePath?: string): Promise<BrowserContext> {
     if (!this.browser) {
       await this.launch();
     }
-    return this.browser!.newContext({
+
+    const options: BrowserContextOptions = {
       userAgent:
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36',
       viewport: { width: 1280, height: 800 },
-      // Mask automation signals
       extraHTTPHeaders: {
         'Accept-Language': 'en-IN,en;q=0.9',
       },
-    });
+    };
+
+    if (storageStatePath && fs.existsSync(storageStatePath)) {
+      try {
+        options.storageState = storageStatePath;
+      } catch {
+        // ignore invalid storageState
+      }
+    }
+
+    return this.browser!.newContext(options);
+  }
+
+  async saveStorageState(context: BrowserContext, targetPath: string): Promise<void> {
+    try {
+      const dir = path.dirname(targetPath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      await context.storageState({ path: targetPath });
+    } catch {
+      // ignore storageState write errors
+    }
   }
 
   async close(): Promise<void> {

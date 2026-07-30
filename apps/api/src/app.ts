@@ -1,4 +1,5 @@
 import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import Fastify from 'fastify';
 import { ZodError } from 'zod';
@@ -11,6 +12,10 @@ import { searchRoutes } from './routes/searches.js';
 
 export const buildApp = () => {
   const app = Fastify({ logger: true });
+
+  app.register(helmet, {
+    contentSecurityPolicy: false, // Allows API response rendering across origins
+  });
 
   app.register(cors, {
     origin: env.WEB_ORIGIN,

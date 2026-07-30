@@ -1,0 +1,11 @@
+{
+  "buildCommand": "npm --workspace=@nirogi/web run build",
+  "outputDirectory": "apps/web/dist",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

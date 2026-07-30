@@ -3,10 +3,11 @@ import type { BrowserContext, Page } from 'playwright';
 // Helper to run page.evaluate safely with a hard timeout (prevents anti-bot script deadlocks)
 export const safeEvaluate = async <T>(page: Page, pageFunction: any, arg?: any, timeoutMs = 400): Promise<T | null> => {
   try {
-    return await Promise.race([
+    const res = await Promise.race([
       page.evaluate(pageFunction, arg),
       new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs)),
     ]);
+    return res as T | null;
   } catch {
     return null;
   }
@@ -71,13 +72,28 @@ export const extractManufacturer = async (page: Page, fallbackSelectors: string[
   }, fallbackSelectors);
 };
 
+const ALLOWED_RETAILER_DOMAINS = ['1mg.com', 'netmeds.com', 'pharmeasy.in', 'serpapi.com'];
+
 export const createOptimizedPage = async (context: BrowserContext): Promise<Page> => {
   const page = await context.newPage();
 
-  // Set up request interception to block heavy assets & anti-bot tracking scripts
+  // Set up request interception to block heavy assets, anti-bot tracking scripts, and unapproved domains
   await page.route('**/*', (route) => {
     const resourceType = route.request().resourceType();
     const url = route.request().url();
+
+    let isAllowedDomain = false;
+    try {
+      const hostname = new URL(url).hostname;
+      isAllowedDomain = ALLOWED_RETAILER_DOMAINS.some((d) => hostname.endsWith(d));
+    } catch {
+      isAllowedDomain = false;
+    }
+
+    if (!isAllowedDomain) {
+      route.abort();
+      return;
+    }
 
     if (
       ['image', 'media', 'font', 'stylesheet'].includes(resourceType) ||

@@ -94,61 +94,88 @@ export async function tryOneMgSSR(queryOrUrl: string, isRetry = false): Promise<
         const data = await res.json();
         const rawResults = data.results || data.data?.results || data.products || [];
         if (Array.isArray(rawResults) && rawResults.length > 0) {
-          const queryTokens = normaliseQuery(queryOrUrl).split(' ').filter((t) => t.length > 1);
-          const brandToken = queryTokens[0] || normaliseQuery(queryOrUrl);
+          // Filter out non-SKU items (like query_suggestion and trending_query)
+          const skuResults = rawResults.filter((item: any) =>
+            item.res_type === 'sku' ||
+            (item.type !== 'query_suggestion' &&
+             item.res_type !== 'trending_query' &&
+             item.url_path &&
+             !item.url_path.includes('/search/all'))
+          );
 
-          const matchingItem = rawResults.find((item: any) => {
-            const cleanName = (item.label || item.name || '').replace(/<[^>]*>/g, '');
-            return normaliseQuery(cleanName).includes(brandToken);
-          });
+          if (skuResults.length > 0) {
+            const queryNorm = normaliseQuery(queryOrUrl);
+            const queryTokens = queryNorm.split(' ').filter((t) => t.length > 1);
+            const brandToken = queryTokens[0] || queryNorm;
+            const strengthNumbers = queryNorm.match(/\d+/g) || [];
 
-          if (matchingItem) {
-            const best = matchingItem;
-            const rawName = (best.label || best.name || '').replace(/<[^>]*>/g, '').trim();
-            const packInfo = (best.pack_size_label ?? best.pack_form)?.trim() ?? null;
-            const sourceTitle = rawName && packInfo && !rawName.toLowerCase().includes(packInfo.toLowerCase())
-              ? `${rawName} ${packInfo}`
-              : (rawName || null);
+            const scored = skuResults.map((item: any) => {
+              let score = 0;
+              const nameNorm = normaliseQuery(item.label || item.name || '');
+              const brandNorm = normaliseQuery(item.brand_name || '');
 
-            const sourceUrl = best.url_path ? `https://www.1mg.com${best.url_path}` : null;
-            const priceRaw = best.discounted_price ?? best.price ?? null;
+              if (brandNorm === brandToken) score += 20;
+              else if (brandNorm.startsWith(brandToken)) score += 10;
+              else if (nameNorm.includes(brandToken)) score += 5;
 
-            // If autocomplete payload doesn't embed price, fetch detail page SSR for 100% price accuracy
-            if (priceRaw === null && sourceUrl) {
-              return tryOneMgSSR(sourceUrl);
+              for (const num of strengthNumbers) {
+                if (nameNorm.includes(num) || (item.strength && String(item.strength).includes(num))) {
+                  score += 15;
+                }
+              }
+              return { item, score };
+            });
+
+            scored.sort((a, b) => b.score - a.score);
+            const best = scored[0]?.item;
+
+            if (best) {
+              const rawName = (best.label || best.name || '').replace(/<[^>]*>/g, '').trim();
+              const packInfo = (best.pack_size_label ?? best.pack_form)?.trim() ?? null;
+              const sourceTitle = rawName && packInfo && !rawName.toLowerCase().includes(packInfo.toLowerCase())
+                ? `${rawName} ${packInfo}`
+                : (rawName || null);
+
+              const sourceUrl = best.url_path ? `https://www.1mg.com${best.url_path}` : null;
+              const priceRaw = best.discounted_price ?? best.price ?? null;
+
+              // If autocomplete payload doesn't embed price, fetch detail page SSR for 100% price accuracy
+              if (priceRaw === null && sourceUrl) {
+                return tryOneMgSSR(sourceUrl);
+              }
+
+              const mrpRaw = best.price ?? null;
+              const discountRaw = best.discount_percent ?? null;
+
+              const pricePaise = parseRupeesToPaise(priceRaw !== null ? String(priceRaw) : null);
+              const mrpPaise = parseRupeesToPaise(mrpRaw !== null ? String(mrpRaw) : null);
+              const discountPercent = parsePercentage(discountRaw !== null ? String(discountRaw) : null);
+
+              const isAvail = best.available ?? (best.saleable && !best.is_discontinued) ?? null;
+              let availability: 'in_stock' | 'out_of_stock' | 'unknown' = 'unknown';
+              if (isAvail === true && pricePaise !== null) availability = 'in_stock';
+              else if (isAvail === false) availability = 'out_of_stock';
+              else if (pricePaise !== null) availability = 'in_stock';
+
+              const manufacturerName = (best.marketer_name ?? best.manufacturer_name ?? null)?.trim() || null;
+              const fetchTimeMs = Date.now() - t0;
+              process.stdout.write(`[one-mg] Tier 1 SSR hit ${fetchTimeMs}ms — "${sourceTitle}" | price: ${priceRaw} | mfr: ${manufacturerName ?? 'N/A'}\n`);
+
+              return {
+                retailer: 'one-mg',
+                sourceTitle,
+                sourceUrl,
+                pricePaise,
+                mrpPaise,
+                discountPercent,
+                manufacturerName,
+                availability,
+                collectedAt: new Date().toISOString(),
+                matchStatus: 'candidate',
+                fetchTimeMs,
+                tierUsed: 'tier1_ssr',
+              };
             }
-
-            const mrpRaw = best.price ?? null;
-            const discountRaw = best.discount_percent ?? null;
-
-            const pricePaise = parseRupeesToPaise(priceRaw !== null ? String(priceRaw) : null);
-            const mrpPaise = parseRupeesToPaise(mrpRaw !== null ? String(mrpRaw) : null);
-            const discountPercent = parsePercentage(discountRaw !== null ? String(discountRaw) : null);
-
-            const isAvail = best.available ?? (best.saleable && !best.is_discontinued) ?? null;
-            let availability: 'in_stock' | 'out_of_stock' | 'unknown' = 'unknown';
-            if (isAvail === true && pricePaise !== null) availability = 'in_stock';
-            else if (isAvail === false) availability = 'out_of_stock';
-            else if (pricePaise !== null) availability = 'in_stock';
-
-            const manufacturerName = (best.marketer_name ?? best.manufacturer_name ?? null)?.trim() || null;
-            const fetchTimeMs = Date.now() - t0;
-            process.stdout.write(`[one-mg] Tier 1 SSR hit ${fetchTimeMs}ms — "${sourceTitle}" | price: ${priceRaw} | mfr: ${manufacturerName ?? 'N/A'}\n`);
-
-            return {
-              retailer: 'one-mg',
-              sourceTitle,
-              sourceUrl,
-              pricePaise,
-              mrpPaise,
-              discountPercent,
-              manufacturerName,
-              availability,
-              collectedAt: new Date().toISOString(),
-              matchStatus: 'candidate',
-              fetchTimeMs,
-              tierUsed: 'tier1_ssr',
-            };
           }
         }
       }

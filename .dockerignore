@@ -1,0 +1,18 @@
+node_modules
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+dist
+build
+.next
+coverage
+*.log
+npm-debug.log*
+.agents
+.vscode
+.idea
+progress
+docs
+Tier 1 (Scraping SSR)

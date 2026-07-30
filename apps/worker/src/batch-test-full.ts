@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { chromium } from 'playwright';
+import { SharedBrowser } from './lib/browser.js';
 import { OneMgAdapter } from './adapters/one-mg.js';
 import { PharmEasyAdapter } from './adapters/pharmeasy.js';
 import { NetmedsAdapter } from './adapters/netmeds.js';
@@ -109,7 +109,8 @@ async function runFullMultiTierBenchmark() {
   console.log('         NIROGI FULL MULTI-TIER BENCHMARK (TIER 1 SSR + TIER 2 SERPAPI/DB + TIER 3 PLAYWRIGHT)         ');
   console.log('========================================================================================================\n');
 
-  const browser = await chromium.launch({ headless: true });
+  const sharedBrowser = new SharedBrowser();
+  await sharedBrowser.launch();
 
   const oneMg = new OneMgAdapter();
   const pharmEasy = new PharmEasyAdapter();
@@ -127,7 +128,7 @@ async function runFullMultiTierBenchmark() {
         console.log(`\n  • Scraper execution for "${query}":`);
         const queryStart = Date.now();
 
-        const input = { query, pincode: '110001', browser };
+        const input = { query, pincode: '110001', browser: sharedBrowser };
 
         const oneMgOffer = await oneMg.search(input);
         const pharmeasyOffer = await pharmEasy.search(input);
@@ -142,9 +143,9 @@ async function runFullMultiTierBenchmark() {
         ];
 
         for (const { name, offer } of offers) {
-          if (offer) {
+          if (offer && offer.sourceTitle) {
             const parsed = parseMedicineTitle(offer.sourceTitle);
-            const perUnitPrice = calculatePerUnitPrice(offer.pricePaise, parsed);
+            const perUnitPriceStr = calculatePerUnitPrice(offer.pricePaise, parsed.packQuantity, parsed.dosageForm);
 
             results.push({
               category: suite.category.split(' ')[1] || suite.category,
@@ -154,7 +155,7 @@ async function runFullMultiTierBenchmark() {
               sourceTitle: offer.sourceTitle.slice(0, 35),
               priceFormatted: offer.pricePaise ? `₹${(offer.pricePaise / 100).toFixed(2)}` : 'N/A',
               mrpFormatted: offer.mrpPaise ? `₹${(offer.mrpPaise / 100).toFixed(2)}` : 'N/A',
-              perUnitPriceFormatted: perUnitPrice ? `${perUnitPrice.formattedRate} / ${perUnitPrice.unit}` : 'N/A',
+              perUnitPriceFormatted: perUnitPriceStr ?? 'N/A',
               status: offer.availability,
               tier: offer.tierUsed,
             });
@@ -219,7 +220,7 @@ async function runFullMultiTierBenchmark() {
     console.log(`• Average Latency per Scraper: ${Math.round(totalLatencyMs / results.length)}ms`);
     console.log('========================================================================================================\n');
   } finally {
-    await browser.close();
+    await sharedBrowser.close();
   }
 }
 
