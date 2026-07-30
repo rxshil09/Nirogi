@@ -3,8 +3,15 @@ import { z } from 'zod';
 export const RetailerSlugSchema = z.enum(['one-mg', 'netmeds', 'pharmeasy']);
 export type RetailerSlug = z.infer<typeof RetailerSlugSchema>;
 
+export const MEDICINE_QUERY_REGEX = /^[a-zA-Z0-9\s\-\.\/%()]+$/;
+
 export const SearchRequestSchema = z.object({
-  query: z.string().trim().min(2).max(200),
+  query: z
+    .string()
+    .trim()
+    .min(2, 'Search query must be at least 2 characters.')
+    .max(200, 'Search query must be under 200 characters.')
+    .regex(MEDICINE_QUERY_REGEX, 'Query contains invalid characters. Use letters, numbers, spaces, and standard medicine symbols (- . / % ()).'),
   pincode: z.string().trim().regex(/^\d{6}$/).optional(),
   retailerSlugs: z.array(RetailerSlugSchema).min(1).optional(),
 });

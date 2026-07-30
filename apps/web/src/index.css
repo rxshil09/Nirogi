@@ -1,11 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  @apply bg-background font-sans text-text;
+  @apply bg-background font-sans text-text antialiased;
   overflow-x: hidden;
 }
 
@@ -15,17 +15,26 @@ button:disabled {
 }
 
 .btn-primary {
-  @apply rounded-full bg-gradient-to-r from-primary to-error px-8 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-glow-primary focus:outline-none focus:ring-4 focus:ring-primary/50;
+  @apply rounded-xl bg-gradient-to-r from-primary to-accent px-6 py-3.5 font-semibold text-white shadow-glow-rose transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-primary focus:outline-none focus:ring-4 focus:ring-primary/20 active:translate-y-0;
 }
 
 .btn-secondary {
-  @apply rounded-full border border-border bg-surface px-8 py-3 font-semibold text-primary transition-all duration-300 hover:scale-105 hover:border-primary focus:outline-none focus:ring-4 focus:ring-primary/20;
+  @apply rounded-xl border border-slate-200 bg-white/80 px-6 py-3.5 font-semibold text-text shadow-sm backdrop-blur-md transition-all duration-300 hover:border-primary/40 hover:bg-white hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/10;
+}
+
+.glass-card {
+  @apply rounded-2xl border border-slate-200/80 bg-white/85 shadow-glass backdrop-blur-md transition-all duration-300;
+}
+
+.glass-card-hover {
+  @apply rounded-2xl border border-slate-200/80 bg-white/85 shadow-glass backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-glass-hover;
 }
 
 .card {
-  @apply rounded-3xl border border-border bg-surface shadow-xl transition-all duration-300 hover:border-primary/50;
+  @apply rounded-2xl border border-border bg-surface shadow-md transition-all duration-300 hover:border-primary/40 hover:shadow-xl;
 }
 
 .input-field {
-  @apply w-full rounded-xl border border-border bg-surface p-3 text-text placeholder:text-textSecondary transition-all duration-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20;
+  @apply w-full rounded-xl border border-slate-200 bg-white/90 p-3.5 text-text placeholder:text-textSecondary transition-all duration-200 focus:border-primary focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/15;
 }
+

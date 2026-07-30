@@ -3,10 +3,11 @@ import type { BrowserContext, Page } from 'playwright';
 // Helper to run page.evaluate safely with a hard timeout (prevents anti-bot script deadlocks)
 export const safeEvaluate = async <T>(page: Page, pageFunction: any, arg?: any, timeoutMs = 400): Promise<T | null> => {
   try {
-    return await Promise.race([
+    const res = await Promise.race([
       page.evaluate(pageFunction, arg),
       new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs)),
     ]);
+    return res as T | null;
   } catch {
     return null;
   }

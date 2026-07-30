@@ -42,10 +42,7 @@ export class OneMgAdapter implements RetailerAdapter {
     process.stdout.write(`[one-mg] Tier 1 missed — falling back to Playwright Tier 3\n`);
 
     try {
-      const context = await input.browser.newContext({
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36',
-        locale: 'en-IN',
-      });
+      const context = await input.browser.newContext();
       try {
         const page = await createOptimizedPage(context);
         await Promise.race([
@@ -82,8 +79,8 @@ export class OneMgAdapter implements RetailerAdapter {
           }
         }
 
-        const rawTitle = await textFrom(page, 'h1');
-        const packSizeText = await textFrom(page, 'div[class*="pack-size"], div[class*="packSize"], div.headingSmallBold, span[class*="pack-size"], div.style__pack-size___');
+        const rawTitle = await textFrom(page, 'h1, div[class*="style__pro-title"], div[class*="ProductCard__product-name"], div[class*="style__product-description"], div[class*="style__title"]');
+        const packSizeText = await textFrom(page, 'div[class*="pack-size"], div[class*="packSize"], div.headingSmallBold, span[class*="pack-size"], div.style__pack-size___, div[class*="style__pack-size"], div[class*="style__pack"]');
 
         const sourceTitle = rawTitle && packSizeText && !rawTitle.toLowerCase().includes(packSizeText.toLowerCase())
           ? `${rawTitle} ${packSizeText}`

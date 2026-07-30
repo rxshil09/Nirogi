@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { Retailer } from '@nirogi/contracts';
+import type { RetailerSlug } from '@nirogi/contracts';
 
 const SerpApiResponseSchema = z.object({
   organic_results: z
@@ -16,7 +16,7 @@ export const discoverProductUrl = async (
   query: string,
   siteDomain: string,
   validator: (url: URL) => boolean,
-  retailer: Retailer,
+  retailer: RetailerSlug,
 ): Promise<string | null> => {
   // ── SerpAPI Google Search with Hard AbortController Timeout ──────────────────
   const apiKey = process.env.SERPAPI_API_KEY;
