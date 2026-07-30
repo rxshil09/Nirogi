@@ -72,13 +72,28 @@ export const extractManufacturer = async (page: Page, fallbackSelectors: string[
   }, fallbackSelectors);
 };
 
+const ALLOWED_RETAILER_DOMAINS = ['1mg.com', 'netmeds.com', 'pharmeasy.in', 'serpapi.com'];
+
 export const createOptimizedPage = async (context: BrowserContext): Promise<Page> => {
   const page = await context.newPage();
 
-  // Set up request interception to block heavy assets & anti-bot tracking scripts
+  // Set up request interception to block heavy assets, anti-bot tracking scripts, and unapproved domains
   await page.route('**/*', (route) => {
     const resourceType = route.request().resourceType();
     const url = route.request().url();
+
+    let isAllowedDomain = false;
+    try {
+      const hostname = new URL(url).hostname;
+      isAllowedDomain = ALLOWED_RETAILER_DOMAINS.some((d) => hostname.endsWith(d));
+    } catch {
+      isAllowedDomain = false;
+    }
+
+    if (!isAllowedDomain) {
+      route.abort();
+      return;
+    }
 
     if (
       ['image', 'media', 'font', 'stylesheet'].includes(resourceType) ||

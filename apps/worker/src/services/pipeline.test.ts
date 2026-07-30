@@ -20,27 +20,25 @@ describe('runPipeline Integration Test', () => {
       },
     });
     retailerId = retailer.id;
+
+    // Clean up any pre-existing Dolo test records
+    await prisma.medicineProduct.deleteMany({
+      where: { displayName: { equals: 'Dolo', mode: 'insensitive' } },
+    });
   });
 
   afterAll(async () => {
     // Cleanup database records created during the test
     if (searchJobId) {
-      // Cascade delete on SearchJob removes scrape attempts
       await prisma.searchJob.deleteMany({
         where: { id: searchJobId },
       });
     }
 
     // Delete test medicine products and variants to keep database clean
-    const product = await prisma.medicineProduct.findFirst({
+    await prisma.medicineProduct.deleteMany({
       where: { displayName: { equals: 'Dolo', mode: 'insensitive' } },
     });
-
-    if (product) {
-      await prisma.medicineProduct.delete({
-        where: { id: product.id },
-      });
-    }
   });
 
   it('should run the search pipeline, mock scrapers, and persist all tables', async () => {
