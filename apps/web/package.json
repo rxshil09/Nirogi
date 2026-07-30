@@ -7,9 +7,9 @@
     "predev": "npm --workspace=@nirogi/contracts run build",
     "dev": "vite",
     "prebuild": "npm --workspace=@nirogi/contracts run build",
-    "build": "tsc -p tsconfig.json --noEmit && vite build",
+    "build": "npx tsc -p tsconfig.json --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "npx tsc -p tsconfig.json --noEmit",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
   },
   "dependencies": {
@@ -28,6 +28,7 @@
     "autoprefixer": "^10.4.20",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.3",
     "vite": "^5.4.14"
   }
 }
