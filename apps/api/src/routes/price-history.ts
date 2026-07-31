@@ -16,7 +16,25 @@ export const priceHistoryRoutes: FastifyPluginAsync = async (app) => {
    *
    * Returns historical price observations for a given product variant.
    */
-  app.get('/v1/products/:productVariantId/price-history', async (request, reply) => {
+  app.get('/v1/products/:productVariantId/price-history', {
+    schema: {
+      tags: ['Products'],
+      summary: 'Get historical price observations for a product variant',
+      description: 'Returns time-series price data over a specified number of days for plotting price trends.',
+      params: {
+        type: 'object',
+        properties: {
+          productVariantId: { type: 'string', format: 'uuid', description: 'Product variant UUID' },
+        },
+      },
+      querystring: {
+        type: 'object',
+        properties: {
+          days: { type: 'integer', default: 30, description: 'Number of history days to fetch' },
+        },
+      },
+    },
+  }, async (request, reply) => {
     const { productVariantId } = PriceHistoryParamsSchema.parse(request.params);
     const { days } = PriceHistoryQuerySchema.parse(request.query);
 

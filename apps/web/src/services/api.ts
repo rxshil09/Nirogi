@@ -22,9 +22,10 @@ const request = async <T>(path: string, options?: RequestInit): Promise<T> => {
   const payload: unknown = await response.json().catch(() => null);
 
   if (!response.ok) {
-    const message = typeof payload === 'object' && payload !== null && 'message' in payload
-      ? String(payload.message)
-      : 'The request could not be completed.';
+    const message =
+      typeof payload === 'object' && payload !== null && 'message' in payload
+        ? String(payload.message)
+        : 'The request could not be completed.';
     throw new ApiError(message, response.status);
   }
 
@@ -32,10 +33,12 @@ const request = async <T>(path: string, options?: RequestInit): Promise<T> => {
 };
 
 export const submitSearch = async (input: SearchRequest): Promise<SearchJobResponse> =>
-  SearchJobResponseSchema.parse(await request<unknown>('/v1/searches', {
-    method: 'POST',
-    body: JSON.stringify(input),
-  }));
+  SearchJobResponseSchema.parse(
+    await request<unknown>('/v1/searches', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+  );
 
 export const getSearchJob = async (searchJobId: string): Promise<SearchResultResponse> =>
   SearchResultResponseSchema.parse(await request<unknown>(`/v1/searches/${searchJobId}`));
@@ -78,4 +81,72 @@ export interface PriceHistoryResponse {
 
 export const getPriceHistory = async (productVariantId: string, days = 30): Promise<PriceHistoryResponse> => {
   return request<PriceHistoryResponse>(`/v1/products/${productVariantId}/price-history?days=${days}`);
+};
+
+export interface ScraperMetricsResponse {
+  service: string;
+  windowHours: number;
+  timestamp: string;
+  uptimeSeconds: number;
+  health: {
+    database: { status: string; latencyMs: number };
+    redis: { status: string; latencyMs: number };
+  };
+  queue: {
+    active: number;
+    waiting: number;
+    completed: number;
+    failed: number;
+    delayed: number;
+  } | null;
+  catalog: {
+    products: number;
+    variants: number;
+    listings: number;
+    observations: number;
+  };
+  searchTelemetry: {
+    totalJobs: number;
+    completed: number;
+    partial: number;
+    failed: number;
+    cacheHits?: number;
+    cacheHitRatePercent: number;
+  };
+  summary: {
+    totalAttempts: number;
+    successfulAttempts: number;
+    failedAttempts: number;
+    overallSuccessRatePercent: number;
+    overallAvgDurationMs: number;
+  };
+  retailers: {
+    retailerSlug: string;
+    displayName?: string;
+    total: number;
+    success: number;
+    failed: number;
+    successRatePercent: number;
+    avgDurationMs: number;
+  }[];
+  tiers: {
+    tier: string;
+    displayName?: string;
+    count: number;
+    percentage: number;
+    avgDurationMs: number;
+  }[];
+  recentFailures: {
+    id: string;
+    searchQuery?: string;
+    retailerSlug: string;
+    tier: string;
+    status?: string;
+    errorMessage: string;
+    createdAt: string;
+  }[];
+}
+
+export const getScraperMetrics = async (windowHours = 24): Promise<ScraperMetricsResponse> => {
+  return request<ScraperMetricsResponse>(`/v1/metrics/scrapers?windowHours=${windowHours}`);
 };

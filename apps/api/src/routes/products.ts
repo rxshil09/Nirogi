@@ -16,7 +16,25 @@ export const productRoutes: FastifyPluginAsync = async (app) => {
    *
    * Returns the latest stored price observations for the given product variant.
    */
-  app.get('/v1/products/:productVariantId/offers', async (request, reply) => {
+  app.get('/v1/products/:productVariantId/offers', {
+    schema: {
+      tags: ['Products'],
+      summary: 'Get latest stored price offers for a product variant',
+      description: 'Retrieves the most recent price observations across all retailers for a specific product variant.',
+      params: {
+        type: 'object',
+        properties: {
+          productVariantId: { type: 'string', format: 'uuid', description: 'Product variant UUID' },
+        },
+      },
+      querystring: {
+        type: 'object',
+        properties: {
+          pincode: { type: 'string', examples: ['110001'], description: '6-digit pincode filter' },
+        },
+      },
+    },
+  }, async (request, reply) => {
     const { productVariantId } = ProductOffersParamsSchema.parse(request.params);
     const { pincode } = ProductOffersQuerySchema.parse(request.query);
 

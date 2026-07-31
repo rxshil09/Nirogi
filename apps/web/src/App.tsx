@@ -4,6 +4,7 @@ import { Header } from './components/Header.js';
 import { ParticlesBackground } from './components/ParticlesBackground.js';
 import { ComparePage } from './pages/ComparePage.js';
 import { HomePage } from './pages/HomePage.js';
+import { MetricsPage } from './pages/MetricsPage.js';
 
 export const App = () => {
   const location = useLocation();
@@ -17,6 +18,7 @@ export const App = () => {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/compare" element={<ComparePage />} />
+          <Route path="/metrics" element={<MetricsPage />} />
           <Route path="*" element={<HomePage />} />
         </Routes>
       </main>

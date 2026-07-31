@@ -26,9 +26,7 @@ export class NetmedsAdapter implements RetailerAdapter {
     const cachedUrl = await discoverProductUrl(
       input.query,
       'netmeds.com',
-      (url) =>
-        url.hostname.endsWith('netmeds.com') &&
-        (url.pathname.includes('/product/') || url.pathname.includes('/prescriptions/') || url.pathname.includes('/medicine/')),
+      (url) => url.hostname.includes('netmeds.com') && url.pathname.length > 2,
       this.retailer,
     );
 

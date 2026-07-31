@@ -9,10 +9,15 @@ export const getRedisClient = (): Redis | null => {
   }
 
   if (!globalForRedis.redis) {
-    globalForRedis.redis = new Redis(env.REDIS_URL, {
+    const client = new Redis(env.REDIS_URL, {
       maxRetriesPerRequest: null,
       enableReadyCheck: false,
+      lazyConnect: true,
     });
+    client.on('error', () => {
+      // Suppress unhandled redis connection errors during local runs/tests
+    });
+    globalForRedis.redis = client;
   }
 
   return globalForRedis.redis;
