@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { Worker } from 'bullmq';
 import { env } from '@nirogi/config';
+import { startWorkerHealthServer } from './health-server.js';
 import { runPipeline } from './services/pipeline.js';
 import type { SearchJobPayload } from './types.js';
 
@@ -44,12 +45,20 @@ worker.on('failed', (job, error) => {
   process.stderr.write(`[worker] Job ${job?.id ?? '?'} failed: ${error.message}\n`);
 });
 
+let isWorkerReady = false;
+
 worker.on('ready', () => {
+  isWorkerReady = true;
   process.stdout.write('[worker] Ready — listening for search-jobs on Redis\n');
 });
+
+startWorkerHealthServer(() => ({
+  isRunning: worker.isRunning() && isWorkerReady,
+}));
 
 process.on('SIGTERM', async () => {
   process.stdout.write('[worker] SIGTERM received — closing gracefully\n');
   await worker.close();
   process.exit(0);
 });
+

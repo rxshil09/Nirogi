@@ -27,7 +27,7 @@ export class OneMgAdapter implements RetailerAdapter {
     const cachedUrl = await discoverProductUrl(
       input.query,
       '1mg.com',
-      (url) => url.hostname.endsWith('1mg.com') && (url.pathname.includes('/drugs/') || url.pathname.includes('/otc/')),
+      (url) => url.hostname.includes('1mg.com') && url.pathname.length > 2,
       this.retailer,
     );
 

@@ -14,7 +14,20 @@ export const catalogRoutes: FastifyPluginAsync = async (app) => {
    * This endpoint ONLY queries the local database — it never invokes Playwright
    * or any external source. Suitable for autocomplete with debouncing on the client.
    */
-  app.get('/v1/catalog/suggestions', async (request, reply) => {
+  app.get('/v1/catalog/suggestions', {
+    schema: {
+      tags: ['Catalog'],
+      summary: 'Medicine catalog autocomplete suggestions',
+      description: 'Queries local database for matching medicine products, brands, and generics for instant autocomplete.',
+      querystring: {
+        type: 'object',
+        required: ['q'],
+        properties: {
+          q: { type: 'string', description: 'Search term or prefix', examples: ['Dolo'] },
+        },
+      },
+    },
+  }, async (request, reply) => {
     const { q } = SuggestionsQuerySchema.parse(request.query);
 
     const matches = await prisma.medicineProduct.findMany({

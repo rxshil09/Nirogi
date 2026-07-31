@@ -58,6 +58,10 @@ Nirogi must never represent an uncertain match as the same medicine. A similar n
 | Playwright resource cleanup | `try/finally` closes browser context on every adapter exit | Prevents context accumulation that silently OOMs the worker process over days of uptime. |
 | SerpAPI URL reuse | Use stored `canonical_url` from `retailer_listings` on repeat scrapes; fall back to SerpAPI only on 404 | Eliminates an external round-trip for known products — the single biggest latency win available. |
 | 3-Tier SSR Fetch Collection | Tier 1: SSR `fetch()` + balanced-brace JSON extraction (`~1-3s`) → Tier 2: SerpAPI discovery retry → Tier 3: Playwright DOM scrape | Reduces scrape times from 20s+ to 1-3s per adapter for cache-warm searches without sacrificing Playwright reliability fallback. |
+| Health Probes & Swagger Specs | `/v1/health/liveness` (liveness probe), `/v1/health` (DB & Redis socket latency probe), `/docs` (OpenAPI UI) | Provides full-stack container health visibility and interactive API documentation. |
+| Scraper Telemetry & Metrics UI | `GET /v1/metrics/scrapers` + `/metrics` SPA page with Recharts charts | Real-time observability into 3-tier cascade breakdown, retailer success rates, BullMQ queue status, and recent failure logs with search query context. |
+| Cache Hit Atomic Telemetry | Redis atomic counters (`metrics:total_searches`, `metrics:cache_hits`) | Tracks cache hit rate percentages accurately without creating empty database rows or corrupting search offer payloads. |
+| Database Migration Tracking | Version-controlled `.sql` migrations in `prisma/migrations/` | Enforces version-controlled schema evolution (`npx prisma migrate dev`), baselined via `20260731000000_init`. |
 
 Fastify may be replaced by Express if there is a strong team preference, but the rest of the boundary and data design should remain unchanged.
 

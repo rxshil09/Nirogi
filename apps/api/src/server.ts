@@ -1,7 +1,7 @@
 import { buildApp } from './app.js';
 import { env } from './config/env.js';
 
-const app = buildApp();
+const app = await buildApp();
 
 const port = Number(process.env.PORT) || env.API_PORT || 4000;
 

@@ -38,7 +38,7 @@ export class PharmEasyAdapter implements RetailerAdapter {
     const cachedUrl = await discoverProductUrl(
       input.query,
       'pharmeasy.in',
-      (url) => url.hostname.endsWith('pharmeasy.in') && url.pathname.includes('/online-medicine-order/'),
+      (url) => url.hostname.includes('pharmeasy.in') && url.pathname.length > 2,
       this.retailer,
     );
 

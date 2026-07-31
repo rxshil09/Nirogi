@@ -43,6 +43,17 @@ export const Header = () => {
           >
             Compare Medicines
           </Link>
+          <Link
+            to="/metrics"
+            className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+              isActive('/metrics')
+                ? 'bg-rose-50 text-primary font-semibold'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            System Metrics
+          </Link>
         </nav>
 
         <button
@@ -82,6 +93,16 @@ export const Header = () => {
               onClick={closeMenu}
             >
               Compare Medicines
+            </Link>
+            <Link
+              to="/metrics"
+              className={`flex items-center gap-2 rounded-lg px-3.5 py-2.5 text-base font-medium transition-colors ${
+                isActive('/metrics') ? 'bg-rose-50 text-primary font-semibold' : 'text-slate-700 hover:bg-slate-50'
+              }`}
+              onClick={closeMenu}
+            >
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              System Metrics
             </Link>
           </div>
         </nav>

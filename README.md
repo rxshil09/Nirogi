@@ -108,16 +108,22 @@ Nirogi uses PostgreSQL managed via Prisma ORM. Key tables include:
 
 ## 📡 API Routes
 
-All endpoints are versioned under `/v1`:
+All REST endpoints are versioned under `/v1` and documented interactively via OpenAPI 3.0 at `/docs`:
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/v1/health` | Health check & infrastructure status (DB / Redis readiness) |
+| `GET` | `/docs` | Interactive Swagger UI (OpenAPI 3.0 specification & live testing) |
+| `GET` | `/v1/health` | Consolidated system health & database/Redis ping latency check |
+| `GET` | `/v1/health/liveness` (`/v1/live`) | Container liveness probe (HTTP 200 process check) |
+| `GET` | `/v1/health/readiness` (`/v1/ready`) | Container readiness probe (probes active Postgres & Redis sockets) |
+| `GET` | `/v1/metrics/scrapers` | Scraper metrics & BullMQ queue health (success rates %, tier breakdown, latencies) |
 | `GET` | `/v1/catalog/suggestions?q=...` | DB-only autocomplete search suggestions (fast, zero scraping) |
 | `POST` | `/v1/searches` | Submit search query & pincode (returns cached results or enqueues worker job) |
 | `GET` | `/v1/searches/:searchJobId` | Poll background search job status and retrieved partial/full offers |
 | `GET` | `/v1/products/:productVariantId/offers` | Fetch current active offers for a specific product variant |
-| `GET` | `/v1/products/:productVariantId/price-history` | 30-day historical price observation time-series data |
+| `GET` | `/v1/products/:productVariantId/price-history` | Historical price observation time-series data |
+
+> 🏥 **Worker Process Health Check**: The background worker process (`apps/worker`) runs a lightweight HTTP health server on port `4001` (or `$HEALTH_PORT`), exposing `GET /health` for container orchestration probes.
 
 ---
 
