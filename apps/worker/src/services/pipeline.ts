@@ -122,6 +122,10 @@ export const runPipeline = async (input: PipelineJobInput): Promise<void> => {
           }
         }
 
+        if (!product) {
+          throw new Error(`Failed to resolve medicine product for "${parsed.brandName}"`);
+        }
+
         // Generate normalized variant key
         const normalisedKey = buildNormalisedVariantKey({
           productId: product.id,
@@ -160,6 +164,10 @@ export const runPipeline = async (input: PipelineJobInput): Promise<void> => {
             });
             if (!variant) throw error;
           }
+        }
+
+        if (!variant) {
+          throw new Error(`Failed to resolve product variant for key "${normalisedKey}"`);
         }
 
         // Set the search job's productVariantId if it hasn't been set yet
