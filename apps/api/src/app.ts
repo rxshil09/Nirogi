@@ -106,6 +106,17 @@ export const buildApp = async () => {
     });
   });
 
+  app.get('/', async (_request, reply) => {
+    return reply.send({
+      service: 'nirogi-api',
+      status: 'ok',
+      version: '0.1.0',
+      docs: '/docs',
+      health: '/v1/health',
+      metrics: '/v1/metrics/scrapers',
+    });
+  });
+
   await app.register(healthRoutes);
   await app.register(metricsRoutes);
   await app.register(catalogRoutes);
