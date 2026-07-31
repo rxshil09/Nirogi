@@ -51,13 +51,26 @@ export const runPipeline = async (input: PipelineJobInput): Promise<void> => {
   const searchInput: SearchInput = { query, pincode, browser: sharedBrowser };
   const results = await Promise.allSettled(
     retailers.map(async (retailer) => {
-      // Create a scrape attempt record
-      const attempt = await prisma.scrapeAttempt.create({
-        data: {
+      // Upsert scrape attempt record — guarantees max 1 attempt per retailer per search job
+      const attempt = await prisma.scrapeAttempt.upsert({
+        where: {
+          searchJobId_retailerId: {
+            searchJobId,
+            retailerId: retailer.id,
+          },
+        },
+        create: {
           searchJobId,
           retailerId: retailer.id,
           status: 'running',
           startedAt: new Date(),
+        },
+        update: {
+          status: 'running',
+          startedAt: new Date(),
+          completedAt: null,
+          errorCode: null,
+          errorMessage: null,
         },
       });
 

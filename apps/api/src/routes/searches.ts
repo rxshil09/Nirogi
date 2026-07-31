@@ -88,11 +88,26 @@ export const searchRoutes: FastifyPluginAsync = async (app) => {
       }
 
       if (ageMs <= STALE_LIMIT_MS) {
-        // Stale but usable — increment cache hit counter, return existing job, and trigger background refresh
+        // Stale but usable — increment cache hit counter, return existing job, and trigger background refresh with a new job ID
         if (redis) {
           void redis.incr('metrics:cache_hits').catch(() => null);
         }
-        void enqueueJob({ searchJobId: existing.id, ...body });
+        void (async () => {
+          try {
+            const refreshJob = await prisma.searchJob.create({
+              data: {
+                query: body.query,
+                pincode: body.pincode,
+                cacheKey,
+                status: 'queued',
+              },
+            });
+            await enqueueJob({ searchJobId: refreshJob.id, ...body });
+          } catch {
+            // Ignore background refresh errors
+          }
+        })();
+
         return reply.send({
           searchJobId: existing.id,
           status: existing.status,
