@@ -3,7 +3,7 @@ name: Keep Nirogi API Warm
 on:
   schedule:
     # Runs every 30 minutes (minute 0 and minute 30 of every hour)
-    - cron: '0 * * * *'
+    - cron: '36 * * * *'
   workflow_dispatch: # Allows you to manually trigger it from the GitHub Actions tab
 
 jobs:
