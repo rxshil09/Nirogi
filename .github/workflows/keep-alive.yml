@@ -1,0 +1,16 @@
+name: Keep Nirogi API Warm
+
+on:
+  schedule:
+    # Runs every 40 minutes
+    - cron: '*/40 * * * *'
+  workflow_dispatch: # Allows you to manually trigger it from the GitHub Actions tab
+
+jobs:
+  ping-nirogi:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Nirogi API
+        run: |
+          echo "Pinging Nirogi API on Render..."
+          curl -s -o /dev/null -w "HTTP Status: %{http_code} | Total Time: %{time_total}s\n" --max-time 120 https://nirogi-api.onrender.com/v1/health || true
